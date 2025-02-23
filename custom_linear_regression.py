@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class CustomLinearRegressionClass:
@@ -18,6 +19,7 @@ class CustomLinearRegressionClass:
     _iterations: int
     _weights: np.ndarray
     _bias: float
+    _history: dict
 
     def __init__(self, learning_rate: float, iterations: int) -> None:
         """Initialize a new CustomLinearRegressionClass with _learning_rate <learning_rate> and
@@ -31,6 +33,7 @@ class CustomLinearRegressionClass:
         self._iterations = iterations
         self._weights = None
         self._bias = None
+        self._history = {"loss": [], "R_squared": []}
 
     @property
     def learning_rate(self) -> float:
@@ -48,7 +51,11 @@ class CustomLinearRegressionClass:
     def bias(self) -> float:
         return self._bias
 
-    def fit(self, X: np.ndarray, y: np.ndarray, method: str = "GD", batch_size: int = 1, print_loss: bool = False) -> None:
+    @property
+    def history(self) -> dict:
+        return self._history
+
+    def fit(self, X: np.ndarray, y: np.ndarray, method: str = "GD", batch_size: int = 1) -> None:
         """Update the _weights and _bias terms trained on the training set <X> of shape n_observations x n_features and
         the target variables for each observation <y> using Mean Squared Error (MSE) as the cost function and <method>
         as the optimization algorithm.
@@ -72,13 +79,10 @@ class CustomLinearRegressionClass:
         self._bias = 0
 
         for iteration in range(self._iterations):
-            y_predicted = X @ self._weights + self._bias
-
-            if print_loss:
-                mse_loss = (1 / n_observations) * np.sum((y - y_predicted) ** 2)
-                print("Loss at iteration " + str(iteration) + ": " + str(mse_loss))
 
             if method == "GD":
+                y_predicted = X @ self._weights + self._bias
+
                 # Determine the derivative of the MSE with respect to the weights
                 # and update the <self._weights> parameters
                 d_weights = - (2 / n_observations) * (X.T @ (y - y_predicted))
@@ -120,11 +124,39 @@ class CustomLinearRegressionClass:
                 raise ValueError("method can only take two values; GD (for Gradient Descent) or "
                                  "SGD (for Stochastic Gradient Descent)")
 
-    def predict(self, X: np.ndarray) -> float:
-        """Return the predicted value of the dependent (target) variable based on the features vector <X> and the fit
+            # Calculate the predicted y values after every training iteration
+            y_predicted = X @ self._weights + self._bias
+
+            # Save the value of the loss for each iteration
+            mse_loss = (1 / n_observations) * np.sum((y - y_predicted) ** 2)
+            self._history["loss"].append(mse_loss)
+            # Save the value of the R squared for each iteration
+            res_sum_squares = np.sum((y - y_predicted) ** 2)
+            res_total = np.sum((y - np.mean(y)) ** 2)
+            res = 1 - (res_sum_squares / res_total)
+            self._history["R_squared"].append(res)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Return the predicted values of the dependent (target) variables based on the test set <X> and the fit
         parameters self._weights and self._bias
 
         Can only be called after calling the self.fit method"""
 
         y_predicted = X @ self._weights + self._bias
-        return float(y_predicted)
+        return y_predicted
+
+    def plot_loss(self) -> None:
+        plt.plot(self._history["loss"])
+        plt.title("Model MSE loss")
+        plt.ylabel("MSE loss")
+        plt.xlabel("Iteration")
+        plt.legend(["train"], loc="upper left")
+        plt.show()
+
+    def plot_R_squared(self) -> None:
+        plt.plot(self._history["R_squared"])
+        plt.title("Model R-Squared")
+        plt.ylabel("R-Squared")
+        plt.xlabel("Iteration")
+        plt.legend(["train"], loc="upper left")
+        plt.show()
