@@ -24,6 +24,7 @@ class CustomLinearRegressionClass:
     def __init__(self, learning_rate: float, iterations: int) -> None:
         """Initialize a new CustomLinearRegressionClass with _learning_rate <learning_rate> and
         _iterations <iterations>"""
+
         if learning_rate <= 0:
             raise ValueError("learning rate should be greater than 0")
         if int(iterations) != iterations or iterations <= 0:
@@ -81,6 +82,7 @@ class CustomLinearRegressionClass:
         for iteration in range(self._iterations):
 
             if method == "GD":
+
                 y_predicted = X @ self._weights + self._bias
 
                 # Determine the derivative of the MSE with respect to the weights
@@ -100,6 +102,7 @@ class CustomLinearRegressionClass:
                                      "less than or equal to the number of observations ")
 
                 # Shuffle <X> and <y> in unison
+                np.random.seed(36)
                 random_shuffle = np.random.permutation(len(y))
                 shuffled_X = X[random_shuffle]
                 shuffled_y = y[random_shuffle]
@@ -121,6 +124,7 @@ class CustomLinearRegressionClass:
                     self._bias = self._bias - self._learning_rate * d_bias
 
             else:
+
                 raise ValueError("method can only take two values; GD (for Gradient Descent) or "
                                  "SGD (for Stochastic Gradient Descent)")
 
@@ -155,6 +159,7 @@ class CustomLinearRegressionClass:
 
     def plot_R_squared(self) -> None:
         plt.plot(self._history["R_squared"])
+        plt.axhline(y=1, color="black", linestyle="--")
         plt.title("Model R-Squared")
         plt.ylabel("R-Squared")
         plt.xlabel("Iteration")
